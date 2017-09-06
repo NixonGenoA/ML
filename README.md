@@ -1,5 +1,5 @@
 # ML
-##Machine Learning Algorithms
+## Machine Learning Algorithms
 	1. Linear Regression
 	2. Logestic Regression
 	3. CART
