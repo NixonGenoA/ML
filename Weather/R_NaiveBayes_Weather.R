@@ -1,4 +1,4 @@
-fullData<-read.csv("G:\\RStudio\\Datasets\\Delhi Weather\\testset.csv")
+fullData<-read.csv("testset.csv")
 View(fullData)
 
 dim(fullData)
