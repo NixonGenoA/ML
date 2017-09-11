@@ -1,32 +1,75 @@
-fullData<-read.csv("data.csv")
-
+#Libraray
+library("caret")
+library("dplyr")
+library("corrgram")
+#Load Dataset
+fullData<-read.csv("G:\\RStudio\\Datasets\\Kaggle BCD\\data.csv")
 str(fullData)
-
 View(fullData)
-
 dim(fullData)
-train<-fullData[1:427,-33]
-test<-fullData[428:569,c(-2,-33)]
+#Data Pre Process
+NULL->fullData$X
+NULL->fullData$id
+nrow(fullData[(is.na(fullData)),])
 
-train<-na.omit(train)
+corrgram(fullData,order = TRUE,upper.panel=panel.cor,
+         diag.panel=panel.density)
+without_cat<-fullData[,c(-1)]
+c<-cor(fullData[,c(-1)])
+hc <- findCorrelation(c, cutoff=0.3) # put any value as a "cutoff" 
 
-library(rpart)
+fullData_c <- cbind(without_cat[,hc],diagnosis = fullData[,"diagnosis"])
+View(fullData_c)
 
-pred<-rpart(diagnosis~.,data=train,method = "class")
+#concavity mean
+ggplot(fullData_c)+
+  geom_histogram(aes(concavity_mean,color=diagnosis,fill=diagnosis))+
+  geom_freqpoly(aes(concavity_mean),color="red")
 
-prediction<-predict(pred,test)
+#concavity_worst
+ggplot(fullData_c)+
+  geom_histogram(aes(concavity_worst,color=diagnosis,fill=diagnosis))+
+  geom_freqpoly(aes(concavity_worst),color="red")
 
-write.csv(prediction,"Result.csv")
+#radius_mean
+ggplot(fullData_c)+
+  geom_histogram(aes(radius_mean,color=diagnosis,fill=diagnosis))+
+  geom_freqpoly(aes(radius_mean),color="red")
 
-summary(pred)
+#fractal_dimension_worst
+ggplot(fullData_c)+
+  geom_histogram(aes(fractal_dimension_worst,color=diagnosis,fill=diagnosis))+
+  geom_freqpoly(aes(fractal_dimension_worst),color="red")
 
-plot(pred,uniform = TRUE,main="TREE")
-text(pred,use.n = TRUE,all=TRUE)
+#radius_se vs area_Se
+ggplot(fullData_c)+
+  geom_point(aes(radius_se,area_se,color=diagnosis,fill=diagnosis))
 
-printcp(pred)
-pred$cptable[which.min(pred$cptable[,"xerror"]),"CP"]
-#prune(pred,cp=0.036723)
+#radius_se vs area_Se
+ggplot(fullData_c)+
+  geom_point(aes(radius_se,area_se,color=diagnosis,fill=diagnosis))
 
-plot(pred,uniform = TRUE)
-text(pred,all=TRUE,use.n=TRUE)
+#fractal_dimension_worst vs symmetry_worst
+ggplot(fullData_c)+
+  geom_point(aes(fractal_dimension_worst,symmetry_worst,color=diagnosis,fill=diagnosis))
+
+#Dummy Variable
+dumy<-dummyVars("~.",fullData_c,fullRank = TRUE)
+newData<-as.data.frame(predict(dumy,fullData_c))
+
+
+#partition
+index<-createDataPartition(newData$diagnosis,p=0.75,list = FALSE)
+trainSet<-newData[index,]
+testSet<-newData[index,]
+
+#model
+colnames(trainSet)
+model<-train(trainSet[,-27],trainSet[,"diagnosis.M"],method = "rpart")
+
+predictor<-predict(model,testSet[,-27])
+
+write.csv(predictor,"Result.csv")
+
+summary(predictor)
 
