@@ -7,3 +7,4 @@
 	5. Navie Bayes
 	6. Random Forest
 	7. SVM
+	8. XGBOOST
